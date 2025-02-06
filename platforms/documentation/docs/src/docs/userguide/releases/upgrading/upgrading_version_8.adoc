@@ -86,6 +86,10 @@ Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, th
 Please ensure that you are not relying on this behavior when upgrading to Gradle 8.13.
 If system properties needs to be overridden, `BuildLauncher#setJvmArguments` should be used instead.
 
+==== Upgrade to ASM 9.7.1
+
+ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7.1] to ensure earlier compatibility for Java 24.
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider
@@ -106,6 +110,21 @@ container.attributeProvider(firstAttribute, project.getProviders().provider(() -
     return "first";
 }));
 ----
+
+[[deprecated_transform_configuration_exception]]
+==== Deprecated `org.gradle.api.artifacts.transform.VariantTransformConfigurationException`
+
+There is no good public use case for this exception, and it is not intended to be thrown by users.
+It will be replaced by `org.gradle.api.internal.artifacts.transform.VariantTransformConfigurationException` for internal use only in Gradle 9.0.
+
+[[deprecated_string_to_enum_coercion_for_rich_properties]]
+==== Groovy String to Enum coercion for Property types is deprecated
+
+Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[String to enum coercion].
+Assigning a string to a property of type `Property<T>` where `T` is an enum is deprecated.
+This will become an error in Gradle 10.0.
+
+This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
 
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
@@ -537,6 +556,48 @@ These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Ja
 - link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
 - Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
 - Calling `setVerbose(false)` did nothing.
+
+[[groovy_boolean_properties]]
+==== Declaring boolean properties with `is`-prefix and `Boolean` types
+
+Gradle property names are derived by following the Java Bean specification with one exception.
+Gradle recognizes methods with a `Boolean` return type and a `is`-prefix as a boolean property. This is behavior inherited from Groovy originally.
+Groovy 4 more closely follows the Java Bean specification and link:https://issues.apache.org/jira/browse/GROOVY-10708[no longer supports this exception].
+
+Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
+In Gradle 9.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date when a `Boolean` property is an input.
+
+Fixing this deprecation requires one of two things:
+
+* Introduce a new method that starts with `get` instead of `is` which has the same behavior. The old method may be removed, but be aware that doing so may break backward compatibility.
+* Or change the type of the property (both get and set) to `boolean`.
+
+For task input properties using the first option, you should also annotate the old `is-` method with `@Deprecated` and `@ReplacedBy` to ensure it is not used by Gradle.
+For example, this code:
+
+[source,java]
+```
+class MyValue {
+    private Boolean property = Boolean.TRUE;
+
+    @Input
+    Boolean isProperty() { return property; }
+}
+```
+
+Should be replaced with the following:
+
+[source,java]
+```
+class MyValue {
+    @Deprecated
+    @ReplacedBy("getProperty")
+    Boolean isProperty() { return property; }
+
+    @Input
+    Boolean getProperty() { return property; }
+}
+```
 
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
