@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Gradle plugin development plugins"
@@ -8,7 +7,6 @@ description = "Gradle plugin development plugins"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
     )
 }
 
@@ -19,7 +17,7 @@ dependencies {
     api(projects.files)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
-    api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.resources)
@@ -45,6 +43,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.maven)
     implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.modelGroovy)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
@@ -67,7 +66,7 @@ dependencies {
 
     integTestImplementation(projects.baseServicesGroovy)
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(libs.groovyTest)

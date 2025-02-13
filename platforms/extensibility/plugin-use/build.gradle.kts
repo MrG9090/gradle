@@ -13,6 +13,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.problemsApi)
 
     api(libs.guava)
@@ -25,6 +26,7 @@ dependencies {
     implementation(projects.jvmServices)
 
     testImplementation(testFixtures(projects.resourcesHttp))
+    testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.baseServicesGroovy)
     integTestImplementation(libs.jetbrainsAnnotations)

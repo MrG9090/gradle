@@ -63,8 +63,6 @@ import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
@@ -223,18 +221,6 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             return instantiatorFactory.decorateLenient(workerProjectScopeServices);
         }
 
-        /**
-         * ClientExecHandleFactory is available in global scope, but we need to provide it here to use a build dir based file resolver.
-         */
-        @Provides
-        ClientExecHandleBuilderFactory createExecFactory(
-            FileResolver fileResolver,
-            ExecutorFactory executorFactory,
-            BuildCancellationToken buildCancellationToken
-        ) {
-            return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
-        }
-
         @Provides
         ExecFactory createExecFactory(
             FileResolver fileResolver,
@@ -243,8 +229,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             ObjectFactory objectFactory,
             ExecutorFactory executorFactory,
             TemporaryFileProvider temporaryFileProvider,
-            BuildCancellationToken buildCancellationToken,
-            ClientExecHandleBuilderFactory execHandleFactory
+            BuildCancellationToken buildCancellationToken
         ) {
             return DefaultExecActionFactory.of(
                 fileResolver,
@@ -253,8 +238,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 executorFactory,
                 temporaryFileProvider,
                 buildCancellationToken,
-                objectFactory,
-                execHandleFactory
+                objectFactory
             );
         }
 

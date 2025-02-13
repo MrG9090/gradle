@@ -45,7 +45,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
@@ -56,6 +55,8 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -68,8 +69,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
@@ -77,6 +76,7 @@ import java.io.File;
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(ProblemLocationAnalyzer.class, DefaultProblemLocationAnalyzer.class);
         registration.add(InMemoryCacheFactory.class);
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
@@ -155,18 +155,6 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    /**
-     * ClientExecHandleFactory is available in global scope, but we need to provide it here to use a build dir based file resolver.
-     */
-    @Provides
-    ClientExecHandleBuilderFactory createExecHandleFactory(
-        FileResolver fileResolver,
-        ExecutorFactory executorFactory,
-        BuildCancellationToken buildCancellationToken
-    ) {
-        return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
-    }
-
     @Provides
     protected ExecFactory decorateExecFactory(
         ExecFactory execFactory,
@@ -175,8 +163,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        JavaModuleDetector javaModuleDetector,
-        ClientExecHandleBuilderFactory clientExecHandleBuilderFactory
+        JavaModuleDetector javaModuleDetector
     ) {
         return execFactory.forContext()
             .withFileResolver(fileResolver)
@@ -185,7 +172,6 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
             .withBuildCancellationToken(buildCancellationToken)
             .withObjectFactory(objectFactory)
             .withJavaModuleDetector(javaModuleDetector)
-            .withExecHandleFactory(clientExecHandleBuilderFactory)
             .build();
     }
 
