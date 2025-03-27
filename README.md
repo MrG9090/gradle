@@ -120,3 +120,4 @@ To make the most out of Gradle, take advantage of these additional resources:
         <img src="https://img.shields.io/badge/-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack" style="margin: 0 20px;">
     </a>
 </div>
+
