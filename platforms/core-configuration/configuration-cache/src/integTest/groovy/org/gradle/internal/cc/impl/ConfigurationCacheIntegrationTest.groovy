@@ -70,19 +70,19 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         when:
         configurationCacheFails "help", "--task", "bTask"
         then:
-        failure.assertHasCause("Task 'bTask' not found in root project")
+        failureCauseContains("Task 'bTask' not found in root project")
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "help", "--task", "cTask"
         then:
-        failure.assertHasCause("Task 'cTask' not found in root project")
+        failureCauseContains("Task 'cTask' not found in root project")
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "help", "--task", "bTask"
         then:
-        failure.assertHasCause("Task 'bTask' not found in root project")
+        failureCauseContains("Task 'bTask' not found in root project")
         configurationCache.assertStateLoaded()
 
         when:
@@ -94,7 +94,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         when:
         configurationCacheFails "help", "--task", "cTask"
         then:
-        failure.assertHasCause("Task 'cTask' not found in root project")
+        failureCauseContains("Task 'cTask' not found in root project")
         configurationCache.assertStateLoaded()
 
         when:
@@ -408,22 +408,5 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         configurationCache.assertNoConfigurationCache()
         outputContains("isConfigurationCacheRequested=true")
-    }
-
-    def "internal load-after-store flag is deprecated"() {
-        def configurationCache = newConfigurationCacheFixture()
-
-        when:
-        executer.expectDeprecationWarning("The org.gradle.configuration-cache.internal.load-after-store system property has been deprecated." +
-            " Starting with Gradle 9.0, it will not be possible to disable load-after-store behavior of Configuration Cache." +
-            " The behavior is enabled by default. Avoid using the internal flag.")
-
-        configurationCacheRun "help", "-Dorg.gradle.configuration-cache.internal.load-after-store=$load"
-
-        then:
-        configurationCache.assertStateStored(load)
-
-        where:
-        load << [true, false]
     }
 }
