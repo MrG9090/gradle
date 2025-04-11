@@ -17,6 +17,7 @@
 plugins {
     id("gradlebuild.public-api-jar")
     id("gradlebuild.publish-defaults")
+    id("signing")
 }
 
 group = "org.gradle.experimental"
@@ -68,16 +69,39 @@ publishing {
     }
 }
 
+// Temporary solution as we cannot simply apply publish-public-libraries for now
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
+
+tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
+
+signing {
+    useInMemoryPgpKeys(
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+    )
+    publishing.publications.configureEach {
+        if (signArtifacts) {
+            signing.sign(this)
+        }
+    }
+}
+
+configurations {
+    gradleApiElements {
+        outgoing {
+            capability("$group:${moduleIdentity.baseName.get()}-internal:$version")
+        }
+    }
+}
+
 val testRepoElements = configurations.consumable("testRepoElements") {
     outgoing.artifact(testRepoLocation) {
         builtBy( "publishMavenPublicationToTestRepository")
     }
     // TODO: De-duplicate this. See publish-public-libraries
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
+        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named("gradle-local-repository"))
     }
 }
 

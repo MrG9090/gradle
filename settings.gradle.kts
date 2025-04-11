@@ -26,10 +26,18 @@ pluginManagement {
     includeBuild("build-logic-settings")
 }
 
+buildscript {
+    dependencies {
+        // update Gson to the desired version, needed here as org.gradle.toolchains.foojay-resolver-convention brings in an older version below
+        // https://github.com/gradle/foojay-toolchains/issues/99
+        classpath("com.google.code.gson:gson:2.12.1") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
+    }
+}
+
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.0") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
 }
@@ -132,9 +140,11 @@ val core = platform("core") {
         subproject("file-collections")
         subproject("file-operations")
         subproject("flow-services")
+        subproject("graph-isolation")
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
+        subproject("isolated-action-services")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
@@ -164,6 +174,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("request-handler-worker")
+        subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
         subproject("workers")

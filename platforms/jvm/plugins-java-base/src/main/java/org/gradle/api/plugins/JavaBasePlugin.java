@@ -23,10 +23,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
@@ -42,11 +40,9 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.internal.NaggingJavaPluginConvention;
 import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
@@ -77,7 +73,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -98,7 +93,6 @@ import java.util.function.Supplier;
 public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
-    @SuppressWarnings("unused")
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
@@ -162,14 +156,10 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureArchiveDefaults(project);
     }
 
-    @SuppressWarnings("deprecation")
     private DefaultJavaPluginExtension addExtensions(final Project project) {
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
-        DeprecationLogger.whileDisabled(() ->
-            project.getConvention().getPlugins().put("java", new NaggingJavaPluginConvention(objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension))));
-        return javaPluginExtension;
+        return (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
     }
 
     private void configureSourceSetDefaults(Project project, final JavaPluginExtension javaPluginExtension) {
@@ -264,7 +254,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         );
     }
 
-    private void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
+    private static void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
         ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
         outputConventionMapping.map("resourcesDir", () -> {
             String classesDirName = "resources/" + sourceSet.getName();
@@ -342,7 +332,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 return javaVersionSupplier.get();
             });
 
-            compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
 
@@ -410,54 +399,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     /**
-     * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile
-     * and override the deprecated methods.
-     */
-    private static class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
-        private final AbstractCompile compile;
-        private boolean recursiveCall;
-
-        public BackwardCompatibilityOutputDirectoryConvention(AbstractCompile compile) {
-            this.compile = compile;
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        @Nullable
-        public Directory call() throws Exception {
-            Method getter = GeneratedSubclasses.unpackType(compile).getMethod("getDestinationDir");
-            if (getter.getDeclaringClass() == AbstractCompile.class) {
-                // Subclass has not overridden the getter, so ignore
-                return null;
-            }
-
-            // Subclass has overridden the getter, so call it
-
-            if (recursiveCall) {
-                // Already querying AbstractCompile.getDestinationDirectory()
-                // In that case, this convention should not be used.
-                return null;
-            }
-            recursiveCall = true;
-            File legacyValue;
-            try {
-                // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
-                // In the Kotlin plugin, the subclass manages its own field which will be used here.
-                // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
-                // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
-                legacyValue = compile.getDestinationDir();
-            } finally {
-                recursiveCall = false;
-            }
-            if (legacyValue == null) {
-                return null;
-            } else {
-                return compile.getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath());
-            }
-        }
-    }
-
-    /**
      * An {@link AbstractRoleBasedConfigurationCreationRequest} that provides context for error messages and warnings
      * emitted when creating the configurations implicitly associated with a {@link SourceSet}.
      */
@@ -467,10 +408,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         private SourceSetConfigurationCreationRequest(String sourceSetName, String configurationName, ConfigurationRole role) {
             super(configurationName, role);
             this.sourceSetName = sourceSetName;
-        }
-
-        public String getSourceSetName() {
-            return sourceSetName;
         }
 
         @Override

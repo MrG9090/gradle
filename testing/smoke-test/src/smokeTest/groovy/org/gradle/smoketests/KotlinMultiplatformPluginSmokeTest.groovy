@@ -16,8 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
@@ -52,6 +54,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4643")
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
@@ -68,7 +71,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .expectDeprecationWarningIf(
-                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
+                kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
                 "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
                 "https://youtrack.jetbrains.com/issue/KT-67110"
             )
@@ -82,7 +85,10 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result.task(':allTests').outcome == SUCCESS
 
         where:
-        kotlinVersion << TestedVersions.kotlin.versions
+        kotlinVersion << TestedVersions.kotlin.versions.findAll {
+            // versions prior to 2.0.0 don't support java 21
+            (JavaVersion.current() < JavaVersion.VERSION_21 || VersionNumber.parse(it) >= VersionNumber.parse('2.0.0-Beta1'))
+        }
     }
 
     /**

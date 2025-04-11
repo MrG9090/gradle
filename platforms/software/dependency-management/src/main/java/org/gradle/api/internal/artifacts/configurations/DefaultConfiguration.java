@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
@@ -506,18 +505,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         });
     }
 
-    @Deprecated
-    @Override
-    public Set<Configuration> getAll() {
-        DeprecationLogger.deprecateMethod(Configuration.class, "getAll()")
-            .withAdvice("Use the configurations container to access the set of configurations instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
-            .nagUser();
-
-        return ImmutableSet.copyOf(configurationsProvider.getAll());
-    }
-
     private FileCollectionInternal getIntrinsicFiles() {
         if (intrinsicFiles == null) {
             assertIsResolvable();
@@ -562,65 +549,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public boolean isEmpty() {
         return getIntrinsicFiles().isEmpty();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> files(Dependency... dependencies) {
-        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
-        return fileCollectionInternal("files(Dependency...)", deps::contains).getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> files(Closure dependencySpecClosure) {
-        return fileCollectionInternal("files(Closure)", Specs.convertClosureToSpec(dependencySpecClosure)).getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> files(Spec<? super Dependency> dependencySpec) {
-        return fileCollectionInternal("files(Spec)", dependencySpec).getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection fileCollection(Closure dependencySpecClosure) {
-        return fileCollectionInternal("fileCollection(Closure)", Specs.convertClosureToSpec(dependencySpecClosure));
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection fileCollection(Dependency... dependencies) {
-        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
-        return fileCollectionInternal("fileCollection(Dependency...)", deps::contains);
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
-        return fileCollectionInternal("fileCollection(Spec)", dependencySpec);
-    }
-
-    private FileCollection fileCollectionInternal(String methodName, Spec<? super Dependency> dependencySpec) {
-        assertIsResolvable();
-
-        DeprecationLogger.deprecateMethod(Configuration.class, methodName)
-            .withAdvice("Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
-            .nagUser();
-
-        return new ResolutionBackedFileCollection(
-            new ResolutionResultProviderBackedSelectedArtifactSet(
-                resolutionAccess.getResults().map(resolverResults ->
-                    resolverResults.getLegacyResults().getLegacyVisitedArtifactSet().select(dependencySpec)
-                )
-            ),
-            false,
-            getResolutionHost(),
-            taskDependencyFactory
-        );
     }
 
     @Override

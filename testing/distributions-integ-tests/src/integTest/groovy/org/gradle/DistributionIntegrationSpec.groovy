@@ -117,6 +117,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "resources",
         "resources-http",
         "runtime-api-info",
+        "scoped-persistent-cache",
         "serialization",
         "service-lookup",
         "service-provider",
@@ -149,7 +150,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        78
+        80
     }
 
     /**
@@ -345,7 +346,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
-        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
 
         // DSL reference
         contentsDir.file('docs/dsl/index.html').assertIsFile()

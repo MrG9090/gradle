@@ -94,18 +94,11 @@ asciidoctorj {
 }
 
 tasks.withType<AsciidoctorTask>().configureEach {
-    val task = this
     val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    if (task.name == "userguideSinglePagePdf") {
-        doctorj.docExtensions(
-            project.dependencies.create(project(":docs-asciidoctor-extensions-base"))
-        )
-    } else {
-        doctorj.docExtensions(
-            project.dependencies.create(project(":docs-asciidoctor-extensions")),
-            project.dependencies.create(files("src/main/resources"))
-        )
-    }
+    doctorj.docExtensions(
+        project.dependencies.create(project(":docs-asciidoctor-extensions")),
+        project.dependencies.create(files("src/main/resources"))
+    )
 }
 
 gradleDocumentation {
@@ -662,6 +655,11 @@ tasks.named<Test>("docsTest") {
         if (!javaVersion.isJava11Compatible) {
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
+        }
+
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // Spring Boot requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {

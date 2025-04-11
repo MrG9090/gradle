@@ -27,7 +27,6 @@ description = "Operations on files, such as archiving, copying, deleting"
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeSuggester", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
     )
 }
@@ -52,6 +51,7 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.serviceLookup)
 
     api(libs.commonsCompress)

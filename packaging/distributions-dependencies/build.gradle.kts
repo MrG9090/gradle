@@ -75,7 +75,7 @@ dependencies {
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleFileEvents)      { version { strictly("0.2.7") }}
-        api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
+        api(libs.gradleProfiler)        { version { strictly("0.23.0-alpha-1") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
@@ -97,14 +97,14 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
-        api(libs.gson)                  { version { strictly("2.10") }}
+        api(libs.gson)                  { version { strictly("2.12.1") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
         api(libs.hamcrest)              { version { strictly(hamcrestVersion) }}
         api("org.hamcrest:hamcrest-core") { version { strictly(hamcrestVersion) }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
-        api(libs.ivy)                   { version { strictly("2.5.2") }}
+        api(libs.ivy)                   { version { strictly("2.5.3") }}
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}

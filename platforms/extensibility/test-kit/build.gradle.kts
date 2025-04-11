@@ -14,17 +14,17 @@ errorprone {
 }
 
 dependencies {
+    api(projects.baseServices)
     api(projects.classloaders)
     api(projects.stdlibJavaExtensions)
-    api(projects.logging)
     api(projects.toolingApi)
 
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
     implementation(projects.core)
     implementation(projects.fileTemp)
     implementation(projects.io)
+    implementation(projects.logging)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 
@@ -54,6 +54,10 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
+
+// Test kit should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath.from(sourceSets.main.map { it.runtimeClasspath })

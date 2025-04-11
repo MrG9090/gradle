@@ -11,6 +11,11 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+// The integration tests in this project do not need to run in 'isolated projects' mode.
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -53,7 +58,6 @@ dependencies {
     implementation(projects.files)
     implementation(projects.flowServices)
     implementation(projects.functional)
-    implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)
@@ -61,6 +65,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
@@ -81,6 +86,7 @@ dependencies {
     runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)
+    testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.mockitoKotlin2)
@@ -118,7 +124,4 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

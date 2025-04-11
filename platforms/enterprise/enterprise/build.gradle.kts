@@ -4,12 +4,6 @@ plugins {
 
 description = "Services and utilities needed by Develocity plugin"
 
-errorprone {
-    disabledChecks.addAll(
-        "SameNameButDifferent", // 4 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -36,7 +30,6 @@ dependencies {
     implementation(projects.dependencyManagement)
     implementation(projects.files)
     implementation(projects.hashing)
-    implementation(projects.logging)
     implementation(projects.serialization)
     implementation(projects.testingBase)
 
